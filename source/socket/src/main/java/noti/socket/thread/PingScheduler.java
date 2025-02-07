@@ -65,14 +65,16 @@ public class PingScheduler {
     }
 
     private void reconnectWithDelay() {
-        try {
-            Thread.sleep(5000); // Wait 5 seconds before reconnecting
-            if (!wsClient.isOpen()) {
-                wsClient.reconnect();
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000); // Wait 5 seconds before reconnecting
+                if (!wsClient.isOpen()) {
+                    wsClient.reconnect();
+                }
+            } catch (InterruptedException e) {
+                LOG.error("Reconnection interrupted: " + e.getMessage());
             }
-        } catch (InterruptedException e) {
-            LOG.error("Reconnection interrupted: " + e.getMessage());
-        }
+        }).start();
     }
 
     private void sendPing() {
