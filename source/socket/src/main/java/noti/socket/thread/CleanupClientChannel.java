@@ -10,8 +10,8 @@ public class CleanupClientChannel extends TimerTask {
 
     @Override
     public void run() {
-        LOG.info("#############============>XXXX Clean up key");
+        LOG.warn("#############============>XXXX Clean up key");
         SocketService.getInstance().scanAndRemoveChannel();
-        LOG.info("#############============>XXXX Clean up key Done. Size: "+SocketService.getInstance().countChannelOrder());
+        LOG.warn("#############============>XXXX Clean up key Done. Size: "+SocketService.getInstance().countChannelOrder());
     }
 }

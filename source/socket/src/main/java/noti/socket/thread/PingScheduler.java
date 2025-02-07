@@ -12,7 +12,7 @@ import org.java_websocket.handshake.ServerHandshake;
 
 public class PingScheduler {
     private static final Logger LOG = LogManager.getLogger(PingScheduler.class);
-    private static final long PING_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    private static final long PING_INTERVAL = 2 * 60 * 1000; // 2 minutes
     private Timer timer;
     private WebSocketClient wsClient;
 
@@ -77,6 +77,7 @@ public class PingScheduler {
 
     private void sendPing() {
         if (wsClient.isOpen()) {
+            LOG.error("ACTIVE PING CALLED");
             wsClient.send("{\"cmd\":\"ACTIVE_PING\",\"app\":\"CLIENT_APP\"}");
         } else {
             LOG.warn("WebSocket not connected, attempting to reconnect...");
