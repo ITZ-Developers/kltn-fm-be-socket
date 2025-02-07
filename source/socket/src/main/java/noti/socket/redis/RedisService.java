@@ -54,7 +54,7 @@ public class RedisService {
 
         int maxSize = config.getInt("server.redis.threads.size");
         int redisType = config.getInt("redis.type");
-        String password = config.getString("redis.password");
+        String password = config.getConfig("REDIS_PASSWORD", "redis.password");
 
         TJedisAbstractPool pool;
         if (redisType == 2) {
