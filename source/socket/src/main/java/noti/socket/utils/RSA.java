@@ -85,15 +85,15 @@ public class RSA {
         System.out.println("private key ======> "+ Base64.getEncoder().encodeToString(privateKey.getEncoded()));
 
         // encrypt the message
-        //byte [] encrypted = encrypt(privateKey, "This is a secret message");
+        //byte [] encrypted = encrypt(privateKey, "This is a message");
         //byte [] encrypted = encrypt(getPrivateKey(privateKey.getEncoded()), "This is a secret message");
         //System.out.println(new String(encrypted));  // <<encrypted message>>
-        byte [] encrypted = encrypt(pubKey, "This is a secret message");
+        byte [] encrypted = encrypt(pubKey, "This is a message");
 
         // decrypt the message
         //byte[] secret = decrypt(pubKey, encrypted);
         //byte[] secret = decrypt(getPublicKey(pubKey.getEncoded()), encrypted);
         byte[] secret = decrypt(privateKey, encrypted);
-        System.out.println(new String(secret));     // This is a secret message
+        System.out.println(new String(secret));     // This is a message
     }
 }
