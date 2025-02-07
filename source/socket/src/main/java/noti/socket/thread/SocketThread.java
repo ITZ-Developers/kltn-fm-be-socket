@@ -53,9 +53,6 @@ public class SocketThread extends AbstractRunable {
             case Command.CLIENT_VERIFY_TOKEN:
                 ClientHandler.getInstance().handleVerifyToken(channelHandlerContext, message);
                 break;
-            case Command.ACTIVE_PING:
-                ClientHandler.getInstance().handleActivePing(channelHandlerContext, message);
-                break;
             default:
                 sendErrorMsg(message);
                 break;

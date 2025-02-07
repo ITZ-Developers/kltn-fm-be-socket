@@ -85,23 +85,6 @@ public class ClientHandler {
         }
     }
 
-    public void handleActivePing(ChannelHandlerContext channelHandlerContext, Message message) {
-        String clientChannelId = "ACTIVE_CHANNEL";
-        message.setMsg("ACTIVE PING SUCCESS");
-        message.setResponseCode(ResponseCode.RESPONSE_CODE_SUCCESS);
-        ClientChannel channel = SocketService.getInstance().getClientChannel(clientChannelId);
-        if (channel != null) {
-            channel.setTime(System.currentTimeMillis());
-            channel.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
-        } else {
-            ClientChannel clientChannel = new ClientChannel();
-            clientChannel.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
-            clientChannel.setTime(System.currentTimeMillis());
-            SocketService.getInstance().addClientChannel(clientChannelId, clientChannel);
-        }
-        MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(), message.toJson());
-    }
-
     public void handleVerifyToken(ChannelHandlerContext channelHandlerContext, Message message) {
         UserSession userSession = UserSession.fromToken(message.getToken());
         if (isValidSession(userSession)) {

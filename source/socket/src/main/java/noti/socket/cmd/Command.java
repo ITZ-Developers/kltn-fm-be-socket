@@ -7,7 +7,6 @@ public class Command {
 	//CLIENT
 	public static final String CLIENT_VERIFY_TOKEN = "CLIENT_VERIFY_TOKEN";
 	public static final String CLIENT_PING = "CLIENT_PING";
-	public static final String ACTIVE_PING = "ACTIVE_PING";
 
 	public static final String CMD_LOCK_DEVICE = "CMD_LOCK_DEVICE";
 	public static final String CLIENT_RECEIVED_PUSH_NOTIFICATION = "CLIENT_RECEIVED_PUSH_NOTIFICATION";
@@ -16,6 +15,6 @@ public class Command {
 
 
 	public static boolean ignoreToken(String cmd){
-        return cmd.equals(TEST_CMD) || cmd.equals(ACTIVE_PING);
+        return cmd.equals(TEST_CMD);
     }
 }

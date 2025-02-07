@@ -7,7 +7,7 @@ package noti.socket;
 import noti.socket.queue.RabbitMqSingleton;
 import noti.socket.redis.RedisService;
 import noti.socket.thread.CleanupClientChannel;
-import noti.socket.thread.PingScheduler;
+import noti.socket.thread.ActiveScheduler;
 import noti.socket.utils.SnowFlakeIdService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -71,8 +71,8 @@ public final class WebSocketServer {
             System.out.println("Websocket server started successfully Open your web browser and navigate to http://127.0.0.1:" + PORT + '/');
 
             // Start ping scheduler
-            PingScheduler pingScheduler = new PingScheduler();
-            pingScheduler.start();
+            ActiveScheduler activeScheduler = new ActiveScheduler();
+            activeScheduler.start();
 
             ch.closeFuture().sync();
         } finally {
