@@ -12,7 +12,7 @@ import org.java_websocket.handshake.ServerHandshake;
 
 public class PingScheduler {
     private static final Logger LOG = LogManager.getLogger(PingScheduler.class);
-    private static final long PING_INTERVAL = 2 * 60 * 1000; // 2 minutes
+    private static final long PING_INTERVAL = 30 * 1000; // 30 seconds
     private Timer timer;
     private WebSocketClient wsClient;
 
