@@ -47,10 +47,10 @@ public class TJedisPool extends TJedisAbstractPool {
             poolConfig.setMaxWaitMillis(60000);
             poolConfig.setTestOnBorrow(false);
             pool = new JedisPool(poolConfig,
-                    "my-valkey-kaytervn.f.aivencloud.com",
-                    13273,
+                    hostPort[0],
+                    Integer.parseInt(hostPort[1]),
                     2000,
-                    "AVNS_Te1PycAJL9HZAmdBhwW",
+                    password,
                     true);
             logger.info("Jedis pool initialized successfully with host {} and port {}.", hostPort[0], hostPort[1]);
         } catch (Exception e) {
