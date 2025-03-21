@@ -1,6 +1,6 @@
 package noti.socket.redis.tjedis;
 
-import noti.socket.constant.RedisConstant;
+import noti.socket.constant.CacheKeyConstant;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -29,7 +29,7 @@ public class TJedisPool extends TJedisAbstractPool {
             throw new IllegalStateException("Jedis pool is not initialized. Call startRedis() first.");
         }
         Jedis jedis = pool.getResource();
-        if (RedisConstant.PASSWORD_ENABLED) {
+        if (CacheKeyConstant.PASSWORD_ENABLED) {
             jedis.auth(password);
         }
         return jedis;

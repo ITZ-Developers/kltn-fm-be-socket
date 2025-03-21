@@ -2,7 +2,7 @@ package noti.socket.redis;
 
 import noti.common.utils.ConfigurationService;
 import noti.socket.constant.NotiConstant;
-import noti.socket.constant.RedisConstant;
+import noti.socket.constant.CacheKeyConstant;
 import noti.socket.redis.tjedis.TJedis;
 import noti.socket.redis.tjedis.TJedisAbstractPool;
 import noti.socket.redis.tjedis.TJedisPool;
@@ -35,13 +35,13 @@ public class RedisService {
 
     public String getKeyString(Integer keyType, String username, String tenantName) {
         switch (keyType) {
-            case RedisConstant.KEY_ADMIN:
+            case CacheKeyConstant.KEY_ADMIN:
                 return PREFIX_KEY_ADMIN + username;
-            case RedisConstant.KEY_CUSTOMER:
+            case CacheKeyConstant.KEY_CUSTOMER:
                 return PREFIX_KEY_CUSTOMER + username;
-            case RedisConstant.KEY_EMPLOYEE:
+            case CacheKeyConstant.KEY_EMPLOYEE:
                 return PREFIX_KEY_EMPLOYEE + tenantName + ":" + username;
-            case RedisConstant.KEY_MOBILE:
+            case CacheKeyConstant.KEY_MOBILE:
                 return PREFIX_KEY_MOBILE + tenantName + ":" + username;
             default:
                 return "<>";

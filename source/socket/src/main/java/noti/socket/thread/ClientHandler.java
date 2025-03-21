@@ -5,7 +5,7 @@ import noti.common.json.Message;
 import noti.socket.cache.CacheSingleton;
 import noti.socket.cmd.ResponseCode;
 import noti.socket.constant.NotiConstant;
-import noti.socket.constant.RedisConstant;
+import noti.socket.constant.CacheKeyConstant;
 import noti.socket.handler.MyChannelWSGroup;
 import noti.socket.jwt.UserSession;
 import noti.socket.model.ClientChannel;
@@ -51,13 +51,13 @@ public class ClientHandler {
         String sessionId = userSession.getSessionId();
         String key = "";
         if (NotiConstant.GRANT_TYPE_EMPLOYEE.equals(grantType)) {
-            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_EMPLOYEE, username, tenantName);
+            key = RedisService.getInstance().getKeyString(CacheKeyConstant.KEY_EMPLOYEE, username, tenantName);
         } else if (NotiConstant.GRANT_TYPE_CUSTOMER.equals(grantType)) {
-            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_CUSTOMER, username, null);
+            key = RedisService.getInstance().getKeyString(CacheKeyConstant.KEY_CUSTOMER, username, null);
         } else if (NotiConstant.GRANT_TYPE_PASSWORD.equals(grantType)) {
-            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_ADMIN, username, null);
+            key = RedisService.getInstance().getKeyString(CacheKeyConstant.KEY_ADMIN, username, null);
         } else {
-            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_MOBILE, username, tenantName);
+            key = RedisService.getInstance().getKeyString(CacheKeyConstant.KEY_MOBILE, username, tenantName);
         }
         if (StringUtils.isNotBlank(key)) {
             return CacheSingleton.getInstance().checkSession(key, sessionId);
@@ -109,15 +109,15 @@ public class ClientHandler {
         String username = userSession.getUsername();
         String tenantName = userSession.getTenantName();
         if (NotiConstant.GRANT_TYPE_EMPLOYEE.equals(grantType)) {
-            keyType = RedisConstant.KEY_EMPLOYEE;
+            keyType = CacheKeyConstant.KEY_EMPLOYEE;
         } else if (NotiConstant.GRANT_TYPE_CUSTOMER.equals(grantType)) {
-            keyType = RedisConstant.KEY_CUSTOMER;
+            keyType = CacheKeyConstant.KEY_CUSTOMER;
         } else if (NotiConstant.GRANT_TYPE_PASSWORD.equals(grantType)) {
-            keyType = RedisConstant.KEY_ADMIN;
+            keyType = CacheKeyConstant.KEY_ADMIN;
         } else {
-            keyType = RedisConstant.KEY_MOBILE;
+            keyType = CacheKeyConstant.KEY_MOBILE;
         }
-        if (List.of(RedisConstant.KEY_EMPLOYEE, RedisConstant.KEY_MOBILE).contains(keyType)) {
+        if (List.of(CacheKeyConstant.KEY_EMPLOYEE, CacheKeyConstant.KEY_MOBILE).contains(keyType)) {
             clientChannelId = keyType + "&" + username + "&" + userKind + "&" + tenantName;
         } else {
             clientChannelId = keyType + "&" + username + "&" + userKind;

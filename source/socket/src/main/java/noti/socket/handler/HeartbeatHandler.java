@@ -10,8 +10,6 @@ import io.netty.handler.timeout.IdleStateEvent;
  * Created by mac on 9/29/16.
  */
 public class HeartbeatHandler extends ChannelInboundHandlerAdapter {
-    //private static final ByteBuf HEARTBEAT_SEQUENCE = Unpooled.unreleasableBuffer(Unpooled.copiedBuffer("HEARTBEAT", CharsetUtil.UTF_8));  //2
-
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         System.out.println("HeartbeatHandler>>userEventTriggered");
