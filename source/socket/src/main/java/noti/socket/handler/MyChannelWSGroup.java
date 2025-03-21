@@ -20,79 +20,82 @@ public class MyChannelWSGroup {
     private static MyChannelWSGroup instance = null;
     private static final Object lock = new Object();
     private ConcurrentHashMap<String, Channel> channels = new ConcurrentHashMap<String, Channel>();
-    private MyChannelWSGroup(){
+
+    private MyChannelWSGroup() {
 
     }
 
     public synchronized static MyChannelWSGroup getInstance() {
-        if(instance == null){
-            synchronized(lock) {
+        if (instance == null) {
+            synchronized (lock) {
                 instance = new MyChannelWSGroup();
             }
         }
         return instance;
     }
-    public String getIdChannel(Channel channel){
+
+    public String getIdChannel(Channel channel) {
         return SocketService.getInstance().getIdChannel(channel);
     }
-    public void addChannel(Channel channel){
-        channels.put(getIdChannel(channel),channel);
+
+    public void addChannel(Channel channel) {
+        channels.put(getIdChannel(channel), channel);
     }
 
-    public void removeChannel(Channel channel){
+    public void removeChannel(Channel channel) {
         channels.remove(getIdChannel(channel));
 
     }
 
-    public Long getCCU(){
+    public Long getCCU() {
         return channels.mappingCount();
     }
 
-    public void sendMessage(String channelId, String message){
+    public void sendMessage(String channelId, String message) {
 
         Channel channel = channels.get(channelId);
-        if(channel != null && channel.isActive()){
+        if (channel != null && channel.isActive()) {
             try {
                 channel.writeAndFlush(new TextWebSocketFrame(message));
-            }catch (Exception e){
-                LOG.error(e.getMessage(),e);
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
             }
 
-        }else{
+        } else {
             LOG.error("khong send duoc channel null");
 
         }
     }
 
-    public boolean checkChannel(String channelId){
+    public boolean checkChannel(String channelId) {
         return channels.containsKey(channelId);
     }
 
-    public void sendMessage(Channel channel, String message){
-        if(channel != null && channel.isActive()){
+    public void sendMessage(Channel channel, String message) {
+        if (channel != null && channel.isActive()) {
             try {
                 LOG.info("[Socket] >>> Sending notification {}", message);
                 channel.writeAndFlush(new TextWebSocketFrame(message));
-            }catch (Exception e){
-                LOG.error(e.getMessage(),e);
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
             }
 
-        }else{
+        } else {
             LOG.error("khong send duoc channel null");
 
         }
     }
 
 
-    public void sendBroadcastMessage(String message){
+    public void sendBroadcastMessage(String message) {
         TextWebSocketFrame msg = new TextWebSocketFrame(message);
-        for(Channel channel: channels.values()){
+        for (Channel channel : channels.values()) {
             try {
-                if(channel != null && channel.isActive()) {
+                if (channel != null && channel.isActive()) {
                     channel.writeAndFlush(msg);
                 }
-            }catch (Exception e){
-                LOG.error(e.getMessage(),e);
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
             }
         }
 
@@ -103,8 +106,6 @@ public class MyChannelWSGroup {
         RequestPushNotification request = new RequestPushNotification();
         request.setTitle(dto.getMessage().getMsg());
         request.setContent(dto.getMessage().toJson());
-        request.setPlayerId(dto.getLockDeviceRequest().getDeviceToken());
-        request.setAppName(dto.getLockDeviceRequest().getOneSignalApp());
 
         if (channel != null && channel.isActive()) {
             try {
@@ -112,11 +113,9 @@ public class MyChannelWSGroup {
                 channel.writeAndFlush(new TextWebSocketFrame(request.getContent()));
             } catch (Exception e) {
                 LOG.error("WebSocket send failed, fallback to push notification: {}", e.getMessage(), e);
-                OneSignalSingleton.getInstance().sendNotification(request);
             }
         } else {
-            LOG.info("Channel is inactive or null, sending push notification");
-            OneSignalSingleton.getInstance().sendNotification(request);
+            LOG.info("Channel is inactive or null");
         }
     }
 }

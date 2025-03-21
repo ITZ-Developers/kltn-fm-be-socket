@@ -5,7 +5,6 @@ package noti.socket;
  */
 
 import noti.socket.queue.RabbitMqSingleton;
-import noti.socket.redis.RedisService;
 import noti.socket.thread.CleanupClientChannel;
 import noti.socket.thread.ActiveScheduler;
 import noti.socket.utils.SnowFlakeIdService;
@@ -44,8 +43,6 @@ public final class WebSocketServer {
 
     public static final int PORT = Integer.valueOf(QueueService.getInstance().getStringResource("server.ws.port"));
     public static void main(String[] args) throws Exception {
-        RedisService.getInstance().startRedis();
-
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));   // It will set UTC timezone
 
         //start queue

@@ -2,7 +2,7 @@ package noti.socket.thread;
 
 import io.netty.channel.ChannelHandlerContext;
 import noti.common.json.Message;
-import noti.socket.cmd.Command;
+import noti.socket.cache.CacheSingleton;
 import noti.socket.cmd.ResponseCode;
 import noti.socket.constant.NotiConstant;
 import noti.socket.constant.RedisConstant;
@@ -16,50 +16,51 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.List;
+
 public class ClientHandler {
     private static final Logger LOG = LogManager.getLogger(ClientHandler.class);
     private static ClientHandler instance = null;
 
-    private ClientHandler(){
+    private ClientHandler() {
 
     }
 
-    public static ClientHandler getInstance(){
-        if(instance == null){
+    public static ClientHandler getInstance() {
+        if (instance == null) {
             instance = new ClientHandler();
         }
         return instance;
     }
 
-    private void sendErrorMsg(ChannelHandlerContext channelHandlerContext, Message oldRequest, String msg){
+    private void sendErrorMsg(ChannelHandlerContext channelHandlerContext, Message oldRequest, String msg) {
         Message response = new Message();
         response.setCmd(oldRequest.getCmd());
         response.setMsg(msg);
         response.setResponseCode(ResponseCode.RESPONSE_CODE_ERROR);
-        MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(),response.toJson());
+        MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(), response.toJson());
     }
 
     private boolean isValidSession(UserSession userSession) {
         if (userSession == null) {
             return false;
         }
+        String username = userSession.getUsername();
         String tenantName = userSession.getTenantName();
-        String posId = userSession.getPosId();
-        String sessionId = userSession.getSessionId();
         String grantType = userSession.getGrantType();
-        if (StringUtils.isBlank(tenantName) || StringUtils.isBlank(posId) || StringUtils.isBlank(sessionId)) {
-            return false;
-        }
+        String sessionId = userSession.getSessionId();
         String key = "";
         if (NotiConstant.GRANT_TYPE_EMPLOYEE.equals(grantType)) {
-            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_EMPLOYEE, tenantName, posId);
-        } else if (NotiConstant.GRANT_TYPE_POS.equals(grantType)) {
-            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_POS, tenantName, posId);
-        } else if (NotiConstant.GRANT_TYPE_VIEW.equals(grantType)) {
-            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_VIEW, tenantName, posId);
+            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_EMPLOYEE, username, tenantName);
+        } else if (NotiConstant.GRANT_TYPE_CUSTOMER.equals(grantType)) {
+            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_CUSTOMER, username, null);
+        } else if (NotiConstant.GRANT_TYPE_PASSWORD.equals(grantType)) {
+            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_ADMIN, username, null);
+        } else {
+            key = RedisService.getInstance().getKeyString(RedisConstant.KEY_MOBILE, username, tenantName);
         }
         if (StringUtils.isNotBlank(key)) {
-            return RedisService.getInstance().isValidSession(key, sessionId);
+            return CacheSingleton.getInstance().checkSession(key, sessionId);
         }
         return false;
     }
@@ -70,18 +71,15 @@ public class ClientHandler {
             hanldeCacheClientSession(userSession, channelHandlerContext);
             message.setData(new ClientInfoResponse());
             message.setToken(null);
-            message.setMsg("Ping success with POS ID: " + userSession.getPosId());
+            message.setMsg("Ping success with user: " + userSession.getUsername());
             message.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
             message.setResponseCode(ResponseCode.RESPONSE_CODE_SUCCESS);
             MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(), message.toJson());
-            LOG.info("[Client Ping] Ping success with POS ID: " + userSession.getPosId());
+            LOG.info("[Client Ping] Ping success with user: " + userSession.getUsername());
         } else {
             LOG.info("[Client Ping] Token invalid");
-            message.setCmd(Command.CMD_LOCK_DEVICE);
-            message.setMsg("Token invalid");
             message.setToken(null);
-            message.setResponseCode(ResponseCode.RESPONSE_CODE_SUCCESS);
-            MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(), message.toJson());
+            sendErrorMsg(channelHandlerContext, message, "Token invalid");
         }
     }
 
@@ -91,11 +89,11 @@ public class ClientHandler {
             hanldeCacheClientSession(userSession, channelHandlerContext);
             message.setData(new ClientInfoResponse());
             message.setToken(null);
-            message.setMsg("Verify token success with POS ID: " + userSession.getPosId());
+            message.setMsg("Verify token success with user: " + userSession.getUsername());
             message.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
             message.setResponseCode(ResponseCode.RESPONSE_CODE_SUCCESS);
             MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(), message.toJson());
-            LOG.info("[Client Verify Token] Verify token success with POS ID: " + userSession.getPosId());
+            LOG.info("[Client Verify Token] Verify token success with user: " + userSession.getUsername());
         } else {
             LOG.info("[Client Verify Token] Token invalid");
             message.setToken(null);
@@ -104,40 +102,34 @@ public class ClientHandler {
     }
 
     private void hanldeCacheClientSession(UserSession userSession, ChannelHandlerContext channelHandlerContext) {
-        String clientChannelId = "";
-        Integer keyType = null;
+        String clientChannelId;
+        Integer keyType;
         String grantType = userSession.getGrantType();
-        String posId = userSession.getPosId();
+        Integer userKind = userSession.getKind();
+        String username = userSession.getUsername();
         String tenantName = userSession.getTenantName();
-        Integer deviceType = userSession.getDeviceType();
         if (NotiConstant.GRANT_TYPE_EMPLOYEE.equals(grantType)) {
             keyType = RedisConstant.KEY_EMPLOYEE;
-        } else if (NotiConstant.GRANT_TYPE_POS.equals(grantType)) {
-            keyType = RedisConstant.KEY_POS;
-        } else if (NotiConstant.GRANT_TYPE_VIEW.equals(grantType)) {
-            keyType = RedisConstant.KEY_VIEW;
-        } else if (userSession.getId() != null && userSession.getKind() != null) {
-            clientChannelId = userSession.getId().toString();
+        } else if (NotiConstant.GRANT_TYPE_CUSTOMER.equals(grantType)) {
+            keyType = RedisConstant.KEY_CUSTOMER;
+        } else if (NotiConstant.GRANT_TYPE_PASSWORD.equals(grantType)) {
+            keyType = RedisConstant.KEY_ADMIN;
+        } else {
+            keyType = RedisConstant.KEY_MOBILE;
         }
-        if (keyType != null) {
-            String keyString = RedisService.getInstance().getKeyString(keyType, tenantName, posId);
-            RedisService.getInstance().handleUpdateTimeLastUsed(keyString);
-            if (RedisConstant.KEY_EMPLOYEE.equals(keyType)) {
-                clientChannelId = posId + "&" + tenantName;
-            } else {
-                clientChannelId = posId + "&" + deviceType;
-            }
+        if (List.of(RedisConstant.KEY_EMPLOYEE, RedisConstant.KEY_MOBILE).contains(keyType)) {
+            clientChannelId = keyType + "&" + username + "&" + userKind + "&" + tenantName;
+        } else {
+            clientChannelId = keyType + "&" + username + "&" + userKind;
         }
         ClientChannel channel = SocketService.getInstance().getClientChannel(clientChannelId);
-        if(channel != null){
-            //update old channel
+        if (channel != null) {
+            // update old channel
             channel.setTime(System.currentTimeMillis());
             channel.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
-        }else{
-            //them session mới
+        } else {
+            // create new session
             ClientChannel clientChannel = new ClientChannel();
-            clientChannel.setPosId(posId);
-            clientChannel.setTenantName(tenantName);
             clientChannel.setKeyType(keyType);
             clientChannel.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
             clientChannel.setTime(System.currentTimeMillis());

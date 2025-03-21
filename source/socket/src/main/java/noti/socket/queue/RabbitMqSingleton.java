@@ -24,12 +24,12 @@ public class RabbitMqSingleton {
 
     private RabbitMqSingleton() {
         factory = new ConnectionFactory();
-        factory.setUsername(QueueService.getInstance().getStringResource("queue.username"));
-        factory.setPassword(QueueService.getInstance().getStringResource("queue.password"));
-        factory.setVirtualHost(QueueService.getInstance().getStringResource("queue.virtualHost"));
+        factory.setUsername(QueueService.getInstance().getConfig("RABBIT_USERNAME", "queue.username"));
+        factory.setPassword(QueueService.getInstance().getConfig("RABBIT_PASSWORD", "queue.password"));
+        factory.setVirtualHost(QueueService.getInstance().getConfig("RABBIT_VIRTUAL_HOST", "queue.virtualHost"));
 
-        String[] ips = QueueService.getInstance().getStringArray("queue.ip");
-        String[] ports = QueueService.getInstance().getStringArray("queue.port");
+        String[] ips = QueueService.getInstance().getConfigArray("RABBIT_HOST");
+        String[] ports = QueueService.getInstance().getConfigArray("RABBIT_PORT");
 
         Address[] addrArr = null;
         if(ips != null && ips.length> 0){

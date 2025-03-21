@@ -32,13 +32,13 @@ public class QueueThread extends AbstractRunable {
 
     public void run() {
         try {
-            LOG.debug("BACKEND CALL =====> "+data);
+            LOG.debug("BACKEND CALL =====> " + data);
             Message message = Message.fromJson(data, Message.class);
             if (message != null) {
 
                 switch (message.getApp()) {
                     case Devices.BACKEND_APP:
-                        hanldeBackendApp(message);
+                        handleBackendApp(message);
                         break;
                     default:
                         LOG.info("NO sub command process with: " + message.getSubCmd());
@@ -46,12 +46,12 @@ public class QueueThread extends AbstractRunable {
             } else {
                 LOG.error("message null or channel id null");
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
     }
 
-    private void hanldeBackendApp(Message message){
+    private void handleBackendApp(Message message) {
         switch (message.getCmd()) {
             case Command.BACKEND_POST_NOTIFICATION:
                 handlePostNoti(message);
@@ -65,25 +65,24 @@ public class QueueThread extends AbstractRunable {
     }
 
     /**
-     *
      * handlePostNoti
-     *{
-     * 	"cmd": "BACKEND_POST_NOTIFICATION",
-     * 	"app": "BACKEND_APP",
-     * 	"data": {
-     * 		"kind": 1,
-     * 		"app": "ELMS",
-     * 		"message": "Noi dung msg here",
-     * 		"userId": 1234,
-     * 		"cmd": "BACKEND_POST_NOTIFICATION"
-     *   }
+     * {
+     * "cmd": "BACKEND_POST_NOTIFICATION",
+     * "app": "BACKEND_APP",
+     * "data": {
+     * "kind": 1,
+     * "app": "ELMS",
+     * "message": "Noi dung msg here",
+     * "userId": 1234,
+     * "cmd": "BACKEND_POST_NOTIFICATION"
      * }
-     * */
-    private void handlePostNoti(Message message){
+     * }
+     */
+    private void handlePostNoti(Message message) {
         NotificationEvent notificationEvent = message.getDataObject(NotificationEvent.class);
-        if(notificationEvent != null && notificationEvent.getUserId()!=null){
+        if (notificationEvent != null && notificationEvent.getUserId() != null) {
             ClientChannel clientChannel = SocketService.getInstance().getClientChannel(notificationEvent.getUserId().toString());
-            if(clientChannel != null){
+            if (clientChannel != null) {
                 PushNotiRequest pushNotiRequest = new PushNotiRequest();
                 pushNotiRequest.setApp(notificationEvent.getApp());
                 pushNotiRequest.setMessage(notificationEvent.getMessage());
@@ -94,8 +93,8 @@ public class QueueThread extends AbstractRunable {
                 messagePost.setResponseCode(ResponseCode.RESPONSE_CODE_SUCCESS);
                 messagePost.setData(pushNotiRequest);
 
-                MyChannelWSGroup.getInstance().sendMessage(clientChannel.getChannelId(),message.toJson());
-            }else{
+                MyChannelWSGroup.getInstance().sendMessage(clientChannel.getChannelId(), message.toJson());
+            } else {
                 LOG.debug("Not found user: {}", notificationEvent.getUserId());
             }
         }
@@ -105,23 +104,12 @@ public class QueueThread extends AbstractRunable {
         LockDeviceRequest lockDeviceRequest = message.getDataObject(LockDeviceRequest.class);
         ClientChannel clientChannel = SocketService.getInstance().getClientChannel(lockDeviceRequest.getChannelId());
         Message msg = createMessage(Command.CMD_LOCK_DEVICE, Devices.BACKEND_SOCKET_APP, lockDeviceRequest,
-                "Lock device with POS ID of Restaurant - " + lockDeviceRequest.getTenantName() + ": " + lockDeviceRequest.getPosId(),
+                "Lock account: " + lockDeviceRequest.getUsername(),
                 ResponseCode.RESPONSE_CODE_SUCCESS);
-        boolean isMasterAppValid = NotiConstant.APP_MASTER.equals(lockDeviceRequest.getApp())
-                && lockDeviceRequest.getPosId() != null
-                && lockDeviceRequest.getDeviceType() != null;
-        boolean isTenantAppValid = NotiConstant.APP_TENANT.equals(lockDeviceRequest.getApp())
-                && lockDeviceRequest.getPosId() != null
-                && lockDeviceRequest.getTenantName() != null;
-        if (clientChannel != null && (isMasterAppValid || isTenantAppValid)) {
+        if (clientChannel != null) {
             MyChannelWSGroup.getInstance().sendMessage(clientChannel.getChannelId(), new LockDeviceDto(msg, lockDeviceRequest));
         } else {
-            OneSignalSingleton.getInstance().sendNotification(new RequestPushNotification(
-                    msg.getMsg(),
-                    msg.toJson(),
-                    lockDeviceRequest.getDeviceToken(),
-                    lockDeviceRequest.getOneSignalApp()
-            ));
+            LOG.error("[LOCK DEVICE] Cannot send message to channel null");
         }
     }
 

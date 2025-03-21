@@ -27,10 +27,19 @@ public class QueueService {
         }
         return instance;
     }
-    public String getStringResource(String key){
 
+    public String getStringResource(String key){
         return config.getString(key);
     }
+
+    public String getConfig(String env, String key){
+        return config.getConfig(env, key);
+    }
+
+    public String[] getConfigArray(String env){
+        return config.getConfigArray(env);
+    }
+
     public void setStringResource(String key, String value){
         if(config.containsKey(key)) {
             config.setProperty(key, value);

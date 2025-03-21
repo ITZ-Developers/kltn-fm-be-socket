@@ -1,23 +1,27 @@
 package noti.socket.model.request;
 
 import lombok.Data;
+import noti.socket.constant.RedisConstant;
 import noti.socket.model.ABasicRequest;
 
 @Data
 public class LockDeviceRequest extends ABasicRequest {
     private String app;
-    private String posId;
-    private Integer deviceType;
+    private Integer keyType;
+    private String username;
+    private Integer userKind;
     private String tenantName;
-    private String deviceToken;
-    private String oneSignalApp;
 
-    /**
-     * Get channel id<br>
-     * From Master: posId + "&" + deviceType<br>
-     * From Tenant: posId + "&" + tenantName
-     */
     public String getChannelId() {
-        return getDeviceType() != null ? getPosId() + "&" + getDeviceType() : getPosId() + "&" + getTenantName();
+        switch (getKeyType()) {
+            case RedisConstant.KEY_ADMIN:
+            case RedisConstant.KEY_CUSTOMER:
+                return keyType + "&" + username + "&" + userKind;
+            case RedisConstant.KEY_EMPLOYEE:
+            case RedisConstant.KEY_MOBILE:
+                return keyType + "&" + username + "&" + userKind + "&" + tenantName;
+            default:
+                return null;
+        }
     }
 }

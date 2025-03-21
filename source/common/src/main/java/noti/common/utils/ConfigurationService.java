@@ -29,6 +29,10 @@ public class ConfigurationService extends PropertiesConfiguration implements Con
         return envValue != null ? envValue : this.getString(propKey);
     }
 
+    public String[] getConfigArray(String envKey) {
+        return new String[]{System.getenv(envKey)};
+    }
+
     @Override
     public void configurationChanged(ConfigurationEvent event) {
         logger.debug("something change in config.properties file, you need to do something!");
