@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.Data;
+import noti.socket.constant.NotiConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import noti.socket.utils.SocketService;
@@ -37,7 +38,8 @@ public class UserSession {
             String sessionId = decodedJWT.getClaim("session_id").asString();
             if (userId == null
                     || userKind == null
-                    || StringUtils.isBlank(tenantName)
+                    || (!NotiConstant.GRANT_TYPE_PASSWORD.equals(grantType)
+                    && StringUtils.isBlank(tenantName))
                     || StringUtils.isBlank(grantType)
                     || StringUtils.isBlank(username)
                     || StringUtils.isBlank(sessionId)
