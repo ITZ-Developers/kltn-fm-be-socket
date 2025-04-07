@@ -8,6 +8,7 @@ import noti.socket.model.event.NotificationEvent;
 import noti.socket.model.push.PushNotiRequest;
 import noti.socket.model.request.LockDeviceDto;
 import noti.socket.model.request.LockDeviceRequest;
+import noti.socket.model.request.SendAccessTokenForm;
 import noti.socket.onesignal.OneSignalSingleton;
 import noti.socket.onesignal.RequestPushNotification;
 import noti.socket.utils.SocketService;
@@ -58,6 +59,9 @@ public class QueueThread extends AbstractRunable {
                 break;
             case Command.CMD_LOCK_DEVICE:
                 handleLockDevice(message);
+                break;
+            case Command.CMD_LOGIN_QR_CODE:
+                handleLoginQrCode(message);
                 break;
             default:
                 LOG.info("NO sub command process with: " + message.getSubCmd());
@@ -121,5 +125,18 @@ public class QueueThread extends AbstractRunable {
         message.setMsg(msg);
         message.setResponseCode(responseCode);
         return message;
+    }
+
+    private void handleLoginQrCode(Message message) {
+        SendAccessTokenForm form = message.getDataObject(SendAccessTokenForm.class);
+        ClientChannel clientChannel = SocketService.getInstance().getClientChannel(form.getClientId());
+        Message msg = createMessage(Command.CMD_LOGIN_QR_CODE, Devices.BACKEND_SOCKET_APP, form,
+                "Verify login qr code success",
+                ResponseCode.RESPONSE_CODE_SUCCESS);
+        if (clientChannel != null) {
+            MyChannelWSGroup.getInstance().sendMessage(clientChannel.getChannelId(), msg.toJson());
+        } else {
+            LOG.error("[LOGIN QR CODE] Cannot send message to channel null");
+        }
     }
 }

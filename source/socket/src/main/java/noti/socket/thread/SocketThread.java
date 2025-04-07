@@ -53,6 +53,9 @@ public class SocketThread extends AbstractRunable {
             case Command.CLIENT_VERIFY_TOKEN:
                 ClientHandler.getInstance().handleVerifyToken(channelHandlerContext, message);
                 break;
+            case Command.CLIENT_LOGIN_QR_CODE:
+                ClientHandler.getInstance().handlePollingLoginQrCode(channelHandlerContext, message);
+                break;
             default:
                 sendErrorMsg(message);
                 break;

@@ -9,6 +9,8 @@ import noti.socket.constant.CacheKeyConstant;
 import noti.socket.handler.MyChannelWSGroup;
 import noti.socket.jwt.UserSession;
 import noti.socket.model.ClientChannel;
+import noti.socket.model.request.PollingLoginQrCode;
+import noti.socket.model.request.SendAccessTokenForm;
 import noti.socket.model.response.ClientInfoResponse;
 import noti.socket.redis.RedisService;
 import noti.socket.utils.SocketService;
@@ -135,5 +137,28 @@ public class ClientHandler {
             clientChannel.setTime(System.currentTimeMillis());
             SocketService.getInstance().addClientChannel(clientChannelId, clientChannel);
         }
+    }
+
+    public void handlePollingLoginQrCode(ChannelHandlerContext channelHandlerContext, Message message) {
+        PollingLoginQrCode form = message.getDataObject(PollingLoginQrCode.class);
+        String clientId = form.getClientId();
+        ClientChannel channel = SocketService.getInstance().getClientChannel(clientId);
+        if (channel != null) {
+            // update old channel
+            channel.setTime(System.currentTimeMillis());
+            channel.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
+        } else {
+            // create new session
+            ClientChannel clientChannel = new ClientChannel();
+            clientChannel.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
+            clientChannel.setTime(System.currentTimeMillis());
+            SocketService.getInstance().addClientChannel(clientId, clientChannel);
+        }
+        message.setData(new ClientInfoResponse());
+        message.setToken(null);
+        message.setMsg("Polling success with client id: " + clientId);
+        message.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
+        message.setResponseCode(ResponseCode.RESPONSE_CODE_SUCCESS);
+        MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(), message.toJson());
     }
 }
