@@ -105,7 +105,8 @@ public class ClientHandler {
 
     private void hanldeCacheClientSession(UserSession userSession, ChannelHandlerContext channelHandlerContext) {
         String clientChannelId;
-        Integer keyType;
+        int keyType;
+        Long userId = userSession.getId();
         String grantType = userSession.getGrantType();
         Integer userKind = userSession.getKind();
         String username = userSession.getUsername();
@@ -132,6 +133,10 @@ public class ClientHandler {
         } else {
             // create new session
             ClientChannel clientChannel = new ClientChannel();
+            if (StringUtils.isNotBlank(tenantName)) {
+                clientChannel.setTenantName(tenantName);
+            }
+            clientChannel.setUserId(userId);
             clientChannel.setKeyType(keyType);
             clientChannel.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
             clientChannel.setTime(System.currentTimeMillis());

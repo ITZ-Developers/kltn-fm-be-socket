@@ -105,4 +105,8 @@ public class SocketService {
     public int countChannelOrder(){
         return userChannel.size();
     }
+
+    public ConcurrentHashMap<String, ClientChannel> getUserChannels() {
+        return userChannel;
+    }
 }
