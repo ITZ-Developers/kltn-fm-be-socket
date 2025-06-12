@@ -1,6 +1,7 @@
 package noti.socket.cache;
 
 import feign.Feign;
+import feign.FeignException;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
 import noti.common.utils.ConfigurationService;
@@ -41,10 +42,16 @@ public class CacheSingleton {
                 return (Boolean) data.get("isValid");
             }
             return false;
+        } catch (FeignException e) {
+            if (e.status() == 502) {
+                LOG.warn(">>> [Cache Client] 502 Bad Gateway - fallback return true");
+                return true;
+            }
+            LOG.error(">>> [Cache Client] Feign error: {}", e.getMessage(), e);
+            return false;
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error(">>> [Cache Client] Unknown error", e);
             return false;
         }
     }
-
 }
