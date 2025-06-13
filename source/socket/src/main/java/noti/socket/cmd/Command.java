@@ -24,6 +24,14 @@ public class Command {
     public static final String CMD_NEW_MESSAGE = "CMD_NEW_MESSAGE";
     public static final String CMD_MESSAGE_UPDATED = "CMD_MESSAGE_UPDATED";
 
+    public static final List<String> CHAT_LIST_CMD = List.of(
+            CMD_CHAT_ROOM_CREATED,
+            CMD_CHAT_ROOM_UPDATED,
+            CMD_CHAT_ROOM_DELETED,
+            CMD_NEW_MESSAGE,
+            CMD_MESSAGE_UPDATED
+    );
+
     public static boolean ignoreToken(String cmd) {
         return List.of(
                 TEST_CMD,

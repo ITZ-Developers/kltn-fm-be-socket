@@ -10,6 +10,8 @@ import noti.socket.cmd.ResponseCode;
 import noti.socket.handler.MyChannelWSGroup;
 import noti.thread.AbstractRunable;
 
+import java.util.List;
+
 @Data
 public class SocketThread extends AbstractRunable {
     private static final Logger LOG = org.apache.logging.log4j.LogManager.getLogger(SocketThread.class);
@@ -27,7 +29,9 @@ public class SocketThread extends AbstractRunable {
         Message message = Message.fromJson(msg, Message.class);
         //LOG.debug("msg: "+msg);
         if (message != null) {
-            if (message.getToken() == null && !Command.ignoreToken(message.getCmd())) {
+            if (Command.CHAT_LIST_CMD.contains(message.getCmd())) {
+                ClientHandler.getInstance().handleBroadCastChatService(message);
+            } else if (message.getToken() == null && !Command.ignoreToken(message.getCmd())) {
                 sendUnauthMsg(message);
                 LOG.debug("Token require...");
             } else {
@@ -55,13 +59,6 @@ public class SocketThread extends AbstractRunable {
                 break;
             case Command.CLIENT_LOGIN_QR_CODE:
                 ClientHandler.getInstance().handlePollingLoginQrCode(channelHandlerContext, message);
-                break;
-            case Command.CMD_CHAT_ROOM_CREATED:
-            case Command.CMD_CHAT_ROOM_UPDATED:
-            case Command.CMD_CHAT_ROOM_DELETED:
-            case Command.CMD_NEW_MESSAGE:
-            case Command.CMD_MESSAGE_UPDATED:
-                ClientHandler.getInstance().handleBroadCastChatService(message);
                 break;
             default:
                 sendErrorMsg(message);
