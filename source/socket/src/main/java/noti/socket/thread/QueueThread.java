@@ -1,7 +1,6 @@
 package noti.socket.thread;
 
 import noti.socket.cmd.ResponseCode;
-import noti.socket.constant.CacheKeyConstant;
 import noti.socket.handler.MyChannelWSGroup;
 import noti.socket.model.ClientChannel;
 import noti.socket.model.event.NotificationEvent;
@@ -9,18 +8,12 @@ import noti.socket.model.push.PushNotiRequest;
 import noti.socket.model.request.LockDeviceDto;
 import noti.socket.model.request.LockDeviceRequest;
 import noti.socket.model.request.SendAccessTokenForm;
-import noti.socket.model.request.SendMessageRequest;
 import noti.socket.utils.SocketService;
 import org.apache.logging.log4j.Logger;
 import noti.common.json.Devices;
 import noti.common.json.Message;
 import noti.socket.cmd.Command;
 import noti.thread.AbstractRunable;
-
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 
 public class QueueThread extends AbstractRunable {
     private static final Logger LOG = org.apache.logging.log4j.LogManager.getLogger(QueueThread.class);
@@ -71,7 +64,7 @@ public class QueueThread extends AbstractRunable {
             case Command.CMD_CHAT_ROOM_DELETED:
             case Command.CMD_NEW_MESSAGE:
             case Command.CMD_MESSAGE_UPDATED:
-                handleBroadCastChatService(message);
+                ClientHandler.getInstance().handleBroadCastChatService(message);
                 break;
             default:
                 LOG.info("NO sub command process with: " + message.getSubCmd());
@@ -117,7 +110,7 @@ public class QueueThread extends AbstractRunable {
     private void handleLockDevice(Message message) {
         LockDeviceRequest lockDeviceRequest = message.getDataObject(LockDeviceRequest.class);
         ClientChannel clientChannel = SocketService.getInstance().getClientChannel(lockDeviceRequest.getChannelId());
-        Message msg = createMessage(Command.CMD_LOCK_DEVICE, Devices.BACKEND_SOCKET_APP, lockDeviceRequest,
+        Message msg = ClientHandler.getInstance().createMessage(Command.CMD_LOCK_DEVICE, Devices.BACKEND_SOCKET_APP, lockDeviceRequest,
                 "Lock account: " + lockDeviceRequest.getUsername(),
                 ResponseCode.RESPONSE_CODE_SUCCESS);
         if (clientChannel != null) {
@@ -127,63 +120,16 @@ public class QueueThread extends AbstractRunable {
         }
     }
 
-    private Message createMessage(String cmd, String app, Object data, String msg, int responseCode) {
-        Message message = new Message();
-        message.setCmd(cmd);
-        message.setApp(app);
-        message.setData(data);
-        message.setMsg(msg);
-        message.setResponseCode(responseCode);
-        return message;
-    }
-
     private void handleLoginQrCode(Message message) {
         SendAccessTokenForm form = message.getDataObject(SendAccessTokenForm.class);
         ClientChannel clientChannel = SocketService.getInstance().getClientChannel(form.getClientId());
-        Message msg = createMessage(Command.CMD_LOGIN_QR_CODE, Devices.BACKEND_SOCKET_APP, form,
+        Message msg = ClientHandler.getInstance().createMessage(Command.CMD_LOGIN_QR_CODE, Devices.BACKEND_SOCKET_APP, form,
                 "Verify login qr code success",
                 ResponseCode.RESPONSE_CODE_SUCCESS);
         if (clientChannel != null) {
             MyChannelWSGroup.getInstance().sendMessage(clientChannel.getChannelId(), msg.toJson());
         } else {
             LOG.error("[LOGIN QR CODE] Cannot send message to channel null");
-        }
-    }
-
-    private void handleBroadCastChatService(Message message) {
-        SendMessageRequest request = message.getDataObject(SendMessageRequest.class);
-        List<Long> userIds = request.getMemberIds();
-        String tenant = request.getTenantName();
-
-        if (userIds == null || tenant == null) {
-            LOG.warn("[CHAT SERVICE] Missing tenant or memberIds");
-            return;
-        }
-
-        request.setMemberIds(null);
-        Message msg = createMessage(message.getCmd(), Devices.BACKEND_SOCKET_APP, request, "Broadcast success", ResponseCode.RESPONSE_CODE_SUCCESS);
-
-        SocketService socketService = SocketService.getInstance();
-        ConcurrentHashMap<String, ClientChannel> userChannels = socketService.getUserChannels();
-
-        for (Map.Entry<String, ClientChannel> entry : userChannels.entrySet()) {
-            ClientChannel channel = entry.getValue();
-            if (channel == null) {
-                continue;
-            }
-
-            boolean sameTenant = tenant.equals(channel.getTenantName());
-            boolean isTargetUser = userIds.contains(channel.getUserId());
-            boolean validKeyType = List.of(CacheKeyConstant.KEY_EMPLOYEE, CacheKeyConstant.KEY_MOBILE).contains(channel.getKeyType());
-
-            if (sameTenant && isTargetUser && validKeyType) {
-                ClientChannel clientChannel = socketService.getClientChannel(entry.getKey());
-                if (clientChannel != null) {
-                    MyChannelWSGroup.getInstance().sendMessage(clientChannel.getChannelId(), msg.toJson());
-                } else {
-                    LOG.error("[CHAT SERVICE] Channel ID null for key: {}", entry.getKey());
-                }
-            }
         }
     }
 }

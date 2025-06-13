@@ -27,11 +27,11 @@ public class SocketThread extends AbstractRunable {
         Message message = Message.fromJson(msg, Message.class);
         //LOG.debug("msg: "+msg);
         if (message != null) {
-            if(message.getToken() == null && !Command.ignoreToken(message.getCmd())){
+            if (message.getToken() == null && !Command.ignoreToken(message.getCmd())) {
                 sendUnauthMsg(message);
                 LOG.debug("Token require...");
-            }else{
-                switch (message.getApp()){
+            } else {
+                switch (message.getApp()) {
                     case Devices.CLIENT_APP:
                         handleClientApp(message);
                         break;
@@ -45,8 +45,8 @@ public class SocketThread extends AbstractRunable {
         }
     }
 
-    private void handleClientApp(Message message){
-        switch (message.getCmd()){
+    private void handleClientApp(Message message) {
+        switch (message.getCmd()) {
             case Command.CLIENT_PING:
                 ClientHandler.getInstance().handlePing(channelHandlerContext, message);
                 break;
@@ -56,25 +56,32 @@ public class SocketThread extends AbstractRunable {
             case Command.CLIENT_LOGIN_QR_CODE:
                 ClientHandler.getInstance().handlePollingLoginQrCode(channelHandlerContext, message);
                 break;
+            case Command.CMD_CHAT_ROOM_CREATED:
+            case Command.CMD_CHAT_ROOM_UPDATED:
+            case Command.CMD_CHAT_ROOM_DELETED:
+            case Command.CMD_NEW_MESSAGE:
+            case Command.CMD_MESSAGE_UPDATED:
+                ClientHandler.getInstance().handleBroadCastChatService(message);
+                break;
             default:
                 sendErrorMsg(message);
                 break;
         }
     }
 
-    private void sendErrorMsg(Message oldRequest){
+    private void sendErrorMsg(Message oldRequest) {
         Message response = new Message();
         response.setCmd(oldRequest.getCmd());
         response.setMsg("Data error");
         response.setResponseCode(ResponseCode.RESPONSE_CODE_ERROR);
-        MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(),response.toJson());
+        MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(), response.toJson());
     }
 
-    private void sendUnauthMsg(Message oldRequest){
+    private void sendUnauthMsg(Message oldRequest) {
         Message response = new Message();
         response.setCmd(oldRequest.getCmd());
         response.setMsg("Data error");
         response.setResponseCode(ResponseCode.RESPONSE_CODE_UN_AUTH);
-        MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(),response.toJson());
+        MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(), response.toJson());
     }
 }

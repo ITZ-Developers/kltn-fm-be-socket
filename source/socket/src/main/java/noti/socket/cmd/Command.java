@@ -10,6 +10,7 @@ public class Command {
     public static final String CLIENT_VERIFY_TOKEN = "CLIENT_VERIFY_TOKEN";
     public static final String CLIENT_PING = "CLIENT_PING";
     public static final String CLIENT_LOGIN_QR_CODE = "CLIENT_LOGIN_QR_CODE";
+    public static final String CLIENT_CHAT_SERVICE = "CLIENT_CHAT_SERVICE";
 
     public static final String CMD_LOCK_DEVICE = "CMD_LOCK_DEVICE";
     public static final String CMD_LOGIN_QR_CODE = "CMD_LOGIN_QR_CODE";

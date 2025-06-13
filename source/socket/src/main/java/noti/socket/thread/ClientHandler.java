@@ -1,6 +1,7 @@
 package noti.socket.thread;
 
 import io.netty.channel.ChannelHandlerContext;
+import noti.common.json.Devices;
 import noti.common.json.Message;
 import noti.socket.cache.CacheSingleton;
 import noti.socket.cmd.ResponseCode;
@@ -10,7 +11,7 @@ import noti.socket.handler.MyChannelWSGroup;
 import noti.socket.jwt.UserSession;
 import noti.socket.model.ClientChannel;
 import noti.socket.model.request.PollingLoginQrCode;
-import noti.socket.model.request.SendAccessTokenForm;
+import noti.socket.model.request.SendMessageRequest;
 import noti.socket.model.response.ClientInfoResponse;
 import noti.socket.redis.RedisService;
 import noti.socket.utils.SocketService;
@@ -19,6 +20,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientHandler {
     private static final Logger LOG = LogManager.getLogger(ClientHandler.class);
@@ -165,5 +168,52 @@ public class ClientHandler {
         message.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
         message.setResponseCode(ResponseCode.RESPONSE_CODE_SUCCESS);
         MyChannelWSGroup.getInstance().sendMessage(channelHandlerContext.channel(), message.toJson());
+    }
+
+    public Message createMessage(String cmd, String app, Object data, String msg, int responseCode) {
+        Message message = new Message();
+        message.setCmd(cmd);
+        message.setApp(app);
+        message.setData(data);
+        message.setMsg(msg);
+        message.setResponseCode(responseCode);
+        return message;
+    }
+
+    public void handleBroadCastChatService(Message message) {
+        SendMessageRequest request = message.getDataObject(SendMessageRequest.class);
+        List<Long> userIds = request.getMemberIds();
+        String tenant = request.getTenantName();
+
+        if (userIds == null || tenant == null) {
+            LOG.warn("[CHAT SERVICE] Missing tenant or memberIds");
+            return;
+        }
+
+        request.setMemberIds(null);
+        Message msg = createMessage(message.getCmd(), Devices.BACKEND_SOCKET_APP, request, "Broadcast success", ResponseCode.RESPONSE_CODE_SUCCESS);
+
+        SocketService socketService = SocketService.getInstance();
+        ConcurrentHashMap<String, ClientChannel> userChannels = socketService.getUserChannels();
+
+        for (Map.Entry<String, ClientChannel> entry : userChannels.entrySet()) {
+            ClientChannel channel = entry.getValue();
+            if (channel == null) {
+                continue;
+            }
+
+            boolean sameTenant = tenant.equals(channel.getTenantName());
+            boolean isTargetUser = userIds.contains(channel.getUserId());
+            boolean validKeyType = List.of(CacheKeyConstant.KEY_EMPLOYEE, CacheKeyConstant.KEY_MOBILE).contains(channel.getKeyType());
+
+            if (sameTenant && isTargetUser && validKeyType) {
+                ClientChannel clientChannel = socketService.getClientChannel(entry.getKey());
+                if (clientChannel != null) {
+                    MyChannelWSGroup.getInstance().sendMessage(clientChannel.getChannelId(), msg.toJson());
+                } else {
+                    LOG.error("[CHAT SERVICE] Channel ID null for key: {}", entry.getKey());
+                }
+            }
+        }
     }
 }
