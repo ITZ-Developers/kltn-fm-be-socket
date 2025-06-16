@@ -58,7 +58,7 @@ public class ClientHandler {
         if (NotiConstant.GRANT_TYPE_EMPLOYEE.equals(grantType)) {
             key = RedisService.getInstance().getKeyString(CacheKeyConstant.KEY_EMPLOYEE, username, tenantName);
         } else if (NotiConstant.GRANT_TYPE_CUSTOMER.equals(grantType)) {
-            key = RedisService.getInstance().getKeyString(CacheKeyConstant.KEY_CUSTOMER, username, null);
+            key = RedisService.getInstance().getKeyString(CacheKeyConstant.KEY_CUSTOMER, username, tenantName);
         } else if (NotiConstant.GRANT_TYPE_PASSWORD.equals(grantType)) {
             key = RedisService.getInstance().getKeyString(CacheKeyConstant.KEY_ADMIN, username, null);
         } else {

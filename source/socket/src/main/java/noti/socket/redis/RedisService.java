@@ -38,7 +38,7 @@ public class RedisService {
             case CacheKeyConstant.KEY_ADMIN:
                 return PREFIX_KEY_ADMIN + username;
             case CacheKeyConstant.KEY_CUSTOMER:
-                return PREFIX_KEY_CUSTOMER + username;
+                return PREFIX_KEY_CUSTOMER + username + ":" + tenantName;
             case CacheKeyConstant.KEY_EMPLOYEE:
                 return PREFIX_KEY_EMPLOYEE + tenantName + ":" + username;
             case CacheKeyConstant.KEY_MOBILE:
