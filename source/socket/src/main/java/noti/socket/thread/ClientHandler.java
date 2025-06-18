@@ -132,7 +132,6 @@ public class ClientHandler {
         if (channel != null) {
             // update old channel
             channel.setTime(System.currentTimeMillis());
-            channel.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
         } else {
             // create new session
             ClientChannel clientChannel = new ClientChannel();
@@ -157,6 +156,9 @@ public class ClientHandler {
         } else {
             // create new session
             ClientChannel clientChannel = new ClientChannel();
+            clientChannel.setTenantName("LOGIN-QR-CODE-999");
+            clientChannel.setUserId(-99999999L);
+            clientChannel.setKeyType(-999);
             clientChannel.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
             clientChannel.setTime(System.currentTimeMillis());
             SocketService.getInstance().addClientChannel(clientId, clientChannel);
