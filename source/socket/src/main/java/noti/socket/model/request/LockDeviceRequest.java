@@ -15,8 +15,8 @@ public class LockDeviceRequest extends ABasicRequest {
     public String getChannelId() {
         switch (getKeyType()) {
             case CacheKeyConstant.KEY_ADMIN:
-            case CacheKeyConstant.KEY_CUSTOMER:
                 return keyType + "&" + username + "&" + userKind;
+            case CacheKeyConstant.KEY_CUSTOMER:
             case CacheKeyConstant.KEY_EMPLOYEE:
             case CacheKeyConstant.KEY_MOBILE:
                 return keyType + "&" + username + "&" + userKind + "&" + tenantName;
