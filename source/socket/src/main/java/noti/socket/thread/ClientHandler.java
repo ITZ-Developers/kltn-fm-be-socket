@@ -204,7 +204,8 @@ public class ClientHandler {
 
             boolean sameTenant = tenant.equals(channel.getTenantName());
             boolean isTargetUser = userIds.contains(channel.getUserId());
-            boolean validKeyType = List.of(CacheKeyConstant.KEY_EMPLOYEE, CacheKeyConstant.KEY_MOBILE).contains(channel.getKeyType());
+            Integer keyType = channel.getKeyType();
+            boolean validKeyType = keyType != null && List.of(CacheKeyConstant.KEY_EMPLOYEE, CacheKeyConstant.KEY_MOBILE).contains(keyType);
 
             if (sameTenant && isTargetUser && validKeyType) {
                 ClientChannel clientChannel = socketService.getClientChannel(entry.getKey());
