@@ -66,6 +66,7 @@ public class SocketService {
     public void addClientChannel(String userId, ClientChannel channelId){
         userChannel.put(userId, channelId);
         LOG.info("[SocketService] >>> addClientChannel: userId=" + userId + ", channelId=" + channelId);
+        LOG.info(channelId);
     }
 
     public void removeClientChannel(String userId){
