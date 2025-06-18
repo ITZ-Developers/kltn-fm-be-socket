@@ -123,7 +123,7 @@ public class ClientHandler {
         } else {
             keyType = CacheKeyConstant.KEY_MOBILE;
         }
-        if (List.of(CacheKeyConstant.KEY_EMPLOYEE, CacheKeyConstant.KEY_MOBILE).contains(keyType)) {
+        if (List.of(CacheKeyConstant.KEY_EMPLOYEE, CacheKeyConstant.KEY_MOBILE, CacheKeyConstant.KEY_CUSTOMER).contains(keyType)) {
             clientChannelId = keyType + "&" + username + "&" + userKind + "&" + tenantName;
         } else {
             clientChannelId = keyType + "&" + username + "&" + userKind;
