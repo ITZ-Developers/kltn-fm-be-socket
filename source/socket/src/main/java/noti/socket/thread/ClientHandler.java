@@ -154,7 +154,6 @@ public class ClientHandler {
         if (channel != null) {
             // update old channel
             channel.setTime(System.currentTimeMillis());
-            channel.setChannelId(MyChannelWSGroup.getInstance().getIdChannel(channelHandlerContext.channel()));
         } else {
             // create new session
             ClientChannel clientChannel = new ClientChannel();
